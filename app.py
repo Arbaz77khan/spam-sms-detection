@@ -7,13 +7,27 @@ from nltk.stem.porter import PorterStemmer
 
 app = Flask(__name__)
 
-ps = PorterStemmer()
-
 # Ensure NLTK data is available
-try:
-    nltk.data.find('corpora/stopwords.zip')
-except LookupError:
-    nltk.download('stopwords')
+def download_nltk_resources():
+    try:
+        nltk.data.find('tokenizers/punkt')
+    except LookupError:
+        nltk.download('punkt')
+    
+    try:
+        nltk.data.find('tokenizers/punkt_tab')
+    except LookupError:
+        nltk.download('punkt_tab')
+    
+    try:
+        nltk.data.find('corpora/stopwords.zip')
+    except LookupError:
+        nltk.download('stopwords')
+
+# Download NLTK resources at the start
+download_nltk_resources()
+
+ps = PorterStemmer()
 
 # Preload stopwords and punctuation
 stop_words = set(stopwords.words('english'))
