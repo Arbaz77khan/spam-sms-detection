@@ -9,30 +9,31 @@ app = Flask(__name__)
 
 ps = PorterStemmer()
 
+# Ensure NLTK data is available
+try:
+    nltk.data.find('corpora/stopwords.zip')
+except LookupError:
+    nltk.download('stopwords')
+
+# Preload stopwords and punctuation
+stop_words = set(stopwords.words('english'))
+punctuation = set(string.punctuation)
+
 # Function to preprocess the text
 def transform_text(text):
     text = text.lower()
     text = nltk.word_tokenize(text)
     
-    y = []
-    for i in text:
-        if i.isalnum():
-            y.append(i)
+    # Remove non-alphanumeric characters
+    text = [i for i in text if i.isalnum()]
 
-    text = y[:]
-    y.clear()
+    # Remove stopwords and punctuation
+    text = [i for i in text if i not in stop_words and i not in punctuation]
 
-    for i in text:
-        if i not in stopwords.words('english') and i not in string.punctuation:
-            y.append(i)
-            
-    text = y[:]
-    y.clear()
-
-    for i in text:
-        y.append(ps.stem(i))
+    # Perform stemming
+    text = [ps.stem(i) for i in text]
     
-    return " ".join(y)
+    return " ".join(text)
 
 # Load the pre-trained model and vectorizer
 tfidf = pickle.load(open('vectorizer.pkl', 'rb'))
@@ -56,12 +57,9 @@ def predict():
     result = model.predict(vector_input)[0]
 
     # 4. Display the result
-    if result == 1:
-        prediction = "Spam"
-    else:
-        prediction = "Not Spam"
+    prediction = "Spam" if result == 1 else "Not Spam"
     
-    return render_template('index.html', prediction_text='Message is: {}'.format(prediction))
+    return render_template('index.html', prediction_text=f'Message is: {prediction}')
 
 if __name__ == "__main__":
     app.run(debug=True)
